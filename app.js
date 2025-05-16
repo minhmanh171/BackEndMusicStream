@@ -6,7 +6,7 @@ const connectDB = require('./config/db');
 const cloudinaryRoutes = require('./routes/cloudinary_route');
 const songRoutes = require('./routes/song_route');
 const userRoutes = require('./routes/user_route');
-
+const playlistRoutes = require('./routes/playList_route');
 const cors = require('cors');
 app.use(cors());
 connectDB();
@@ -22,6 +22,7 @@ app.get('/', (req, res) => {
 app.use('/api', cloudinaryRoutes);
 app.use('/api/songs', songRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/playlists', playlistRoutes);
 app.listen(4000, () => {
     console.log('Server is running on port 4000');
 
