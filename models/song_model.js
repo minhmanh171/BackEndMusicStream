@@ -2,17 +2,13 @@ const mongoose = require('mongoose');
 
 const songSchema = new mongoose.Schema({
     title: { type: String, required: true },
+    bio: { type: String, default: '' },
 
     artist_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Artist',
-        required: true
-    },
-
-    album_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Album',
-        required: true
+        required: true,
+        default: null
     },
 
     type: {

@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Song = require('../models/song_model');
-const Playlist = require('../models/playlist_model');
+
 //get all songs
 router.get('/', async (req, res) => {
     try {
-        const songs = await Song.find();
+        const songs = await Song.find().populate('artist_id');
         res.json(songs);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -45,13 +45,10 @@ router.get('/search', async (req, res) => {
 });
 
 
-
-// get a song by id
-// API tìm kiếm bài hát từ ID (chỉ trả về image và author)
 router.get('/:id', async (req, res) => {
     try {
-        // Tìm bài hát theo ID và chỉ lấy trường image và author
-        const song = await Song.findById(req.params.id).select('url image');
+
+        const song = await Song.findById(req.params.id).populate('artist_id');
 
         if (!song) {
             return res.status(404).json({ message: 'Song not found' });
@@ -63,6 +60,8 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+
 
 
 

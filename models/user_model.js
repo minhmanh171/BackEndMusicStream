@@ -7,7 +7,11 @@ const userSchema = new mongoose.Schema({
     created_time: {
         type: Date,
         default: Date.now
-
-    }
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'], // Có thể mở rộng thêm role khác
+        default: 'user'
+    },
 });
 module.exports = mongoose.model('User', userSchema);

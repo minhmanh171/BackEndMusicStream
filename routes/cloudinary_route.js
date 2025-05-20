@@ -31,13 +31,13 @@ const mp3Storage = new CloudinaryStorage({
 const uploadMp3 = multer({ storage: mp3Storage });
 
 // Route upload ảnh
-router.post('/upload-image', uploadImage.single('image'), (req, res) => {
+router.post('/image', uploadImage.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Không có ảnh' });
     res.json({ url: req.file.path });
 });
 
 // Route upload MP3
-router.post('/upload-mp3', uploadMp3.single('mp3'), (req, res) => {
+router.post('/mp3', uploadMp3.single('mp3'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Không có file MP3' });
     res.json({ url: req.file.path });
 });

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Playlist = require('../models/playList_model');
 
-// 📌 Tạo playlist mới
+//  Tạo playlist mới
 router.post('/', async (req, res) => {
     try {
         const newPlaylist = new Playlist({
@@ -10,7 +10,7 @@ router.post('/', async (req, res) => {
             user_id: req.body.user_id,
             is_public: req.body.is_public,
             create_time: req.body.create_time || new Date(),
-            songs: req.body.songs  // mảng ID bài hát
+            songs: req.body.songs
         });
 
         const saved = await newPlaylist.save();
@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// 📌 Lấy tất cả playlist công khai
+//  Lấy tất cả playlist công khai
 router.get('/public', async (req, res) => {
     try {
         const playlists = await Playlist.find({ is_public: true }).populate('songs');
@@ -31,7 +31,7 @@ router.get('/public', async (req, res) => {
     }
 });
 
-// 📌 Lấy playlist theo user_id
+//  Lấy playlist theo user_id
 router.get('/user/:userId', async (req, res) => {
     try {
         const playlists = await Playlist.find({ user_id: req.params.userId }).populate('songs');
@@ -41,10 +41,10 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
-// 📌 Lấy playlist theo id
+//  Lấy playlist theo id
 router.get('/:id', async (req, res) => {
     try {
-        const playlist = await Playlist.findById(req.params.id).populate('songs');
+        const playlist = await Playlist.findById(req.params.id).populate('songs').populate('user_id');
         if (!playlist) return res.status(404).json({ message: 'Không tìm thấy playlist' });
         res.json(playlist);
     } catch (err) {
@@ -52,7 +52,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// 📌 Cập nhật playlist
+//  Cập nhật playlist
 router.put('/:id', async (req, res) => {
     try {
         const updated = await Playlist.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -62,7 +62,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// 📌 Xoá playlist
+//  Xoá playlist
 router.delete('/:id', async (req, res) => {
     try {
         await Playlist.findByIdAndDelete(req.params.id);
