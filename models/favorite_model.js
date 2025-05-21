@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const favoriteSchema = new mongoose.Schema({
     user_id: {
@@ -6,11 +6,11 @@ const favoriteSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    song_id: {
+    song_id: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Song',
         required: true
-    },
+    }],
     create_time: {
         type: Date,
         default: Date.now
@@ -20,4 +20,4 @@ const favoriteSchema = new mongoose.Schema({
     versionKey: false
 });
 
-export default mongoose.model('Favorite', favoriteSchema);
+module.exports = mongoose.model('Favorite', favoriteSchema);

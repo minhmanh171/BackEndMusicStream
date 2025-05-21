@@ -28,14 +28,16 @@ router.post('/', async (req, res) => {
 // [GET] Lấy danh sách bài hát yêu thích của 1 người dùng
 router.get('/user/:userId', async (req, res) => {
     try {
-        const favorites = await Favorite.find({ user_id: req.params.userId })
-            .sort({ create_time: -1 })
-            .populate('song_id', 'title artist'); // Nếu muốn lấy thông tin bài hát
+        const favorites = await Favorite.findOne({ user_id: req.params.userId }).populate('song_id');
+        if (!favorites) {
+            return res.status(404).json({ message: 'Không tìm thấy danh sách yêu thích' });
+        }
         res.json(favorites);
     } catch (err) {
         res.status(500).json({ error: 'Lỗi khi lấy danh sách yêu thích', detail: err.message });
     }
 });
+
 
 // [DELETE] Xóa bài hát khỏi danh sách yêu thích
 router.delete('/', async (req, res) => {
