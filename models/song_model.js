@@ -11,10 +11,10 @@ const songSchema = new mongoose.Schema({
         default: null
     },
 
-    type: {
-        type: String,
-        enum: ['POP', 'ROCK', 'BALLAD', 'RAP', 'EDM', 'OTHER'],
-        default: 'OTHER'
+    type_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Type",
+        default: null
     },
 
     duration: {

@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'], // Có thể mở rộng thêm role khác
+        enum: ['user', 'admin'],
         default: 'user'
     },
 });

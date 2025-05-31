@@ -22,6 +22,29 @@ router.post('/', async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+// Cập nhật người dùng theo ID
+router.put('/:id', async (req, res) => {
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        ).select('-password');
+        res.json({ message: 'Cập nhật thành công', user: updatedUser });
+    } catch (err) {
+        res.status(400).json({ error: 'Cập nhật thất bại' });
+    }
+});
+
+// Xóa người dùng theo ID
+router.delete('/:id', async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Xóa người dùng thành công' });
+    } catch (err) {
+        res.status(400).json({ error: 'Xóa thất bại' });
+    }
+});
 
 //check login
 router.post('/check_login', async (req, res) => {
@@ -46,6 +69,36 @@ router.post('/check_login', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
+
+//check login admin
+router.post('/check_login_admin', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const user = await User.findOne({ username, password });
+        if (user) {
+            if (user.role === 'admin') {
+                res.json({
+                    success: true,
+                    message: 'Login successful',
+                    __id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    avatar: user.avatar,
+                    created_time: user.created_time
+                });
+            } else {
+                res.status(403).json({ success: false, message: 'Access denied. Admins only.' });
+            }
+        } else {
+            res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+
+
 
 //check register
 router.post('/check_signup', async (req, res) => {

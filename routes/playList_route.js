@@ -19,6 +19,14 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+router.get('/', async (req, res) => {
+    try {
+        const playlists = await Playlist.find().populate('songs').populate('user_id'); // Populate user_id with username and email
+        res.json(playlists);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 
 //  Lấy tất cả playlist công khai
 router.get('/public', async (req, res) => {
@@ -72,4 +80,30 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// API tìm kiếm playlist theo name
+router.get('/playlists/search', async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) {
+            return res.status(400).json({ message: 'Thiếu từ khóa tìm kiếm' });
+        }
+
+        const playlists = await Playlist.find({
+            name: { $regex: q, $options: 'i' }
+        })
+            .populate('user_id', 'username email')  // populate thông tin user nếu muốn (thay đổi field theo schema user)
+            .populate({
+                path: 'songs',
+                populate: {
+                    path: 'artist_id type_id',
+                    select: 'name'  // lấy tên artist và type cho bài hát
+                }
+            });
+
+        res.json(playlists);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+});
 module.exports = router;

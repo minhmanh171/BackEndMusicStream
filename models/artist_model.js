@@ -14,7 +14,7 @@ const artistSchema = new mongoose.Schema({
         default: ''
     }
 }, {
-    timestamps: true // Tự động thêm createdAt và updatedAt
+    timestamps: false // Tự động thêm createdAt và updatedAt
 });
 
 module.exports = mongoose.model('Artist', artistSchema);

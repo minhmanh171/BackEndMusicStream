@@ -30,9 +30,7 @@ app.use('/api/artist', artistRoutes);
 const commentRoutes = require('./routes/comment_rote');
 app.use('/api/comments', commentRoutes);
 
-//history
-const playHistoryRoutes = require('./routes/history_route');
-app.use('/api/history', playHistoryRoutes);
+
 
 //favorite
 const favoriteRoutes = require('./routes/favorite_route');
@@ -41,6 +39,18 @@ app.use('/api/favorites', favoriteRoutes);
 //album
 const albumRoutes = require('./routes/album_route.js');
 app.use('/api/album', albumRoutes);
+
+//type
+const typeRoute = require('./routes/type_route.js');
+app.use('/api/type', typeRoute);
+
+//ai
+const aichat = require('./routes/Ai_route.js');
+app.use('/ai', aichat);
+
+//chatbox
+const chatbox = require('./routes/chatbox_route.js');
+app.use('/api/chatbox', chatbox);
 
 
 app.listen(4000, () => {

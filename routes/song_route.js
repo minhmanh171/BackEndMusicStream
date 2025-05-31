@@ -5,7 +5,7 @@ const Song = require('../models/song_model');
 //get all songs
 router.get('/', async (req, res) => {
     try {
-        const songs = await Song.find().populate('artist_id');
+        const songs = await Song.find().populate('artist_id').populate('type_id');
         res.json(songs);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -19,6 +19,26 @@ router.post('/', async (req, res) => {
         const song = new Song(req.body);
         await song.save();
         res.status(201).json(song);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Cập nhật bài hát
+router.put('/:id', async (req, res) => {
+    try {
+        const song = await Song.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json(song);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Xóa bài hát
+router.delete('/:id', async (req, res) => {
+    try {
+        await Song.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Đã xóa' });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -53,7 +73,6 @@ router.get('/:id', async (req, res) => {
         if (!song) {
             return res.status(404).json({ message: 'Song not found' });
         }
-
         res.json(song); // Trả về thông tin bài hát gồm image và author
     } catch (err) {
         console.error(err);
@@ -61,7 +80,26 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// API tìm kiếm bài hát theo title, trả kèm artist và type
+router.get('/songs/search', async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) {
+            return res.status(400).json({ message: 'Thiếu từ khóa tìm kiếm' });
+        }
 
+        const songs = await Song.find({
+            title: { $regex: q, $options: 'i' }
+        })
+            .populate('artist_id', 'name bio image') // lấy thông tin artist
+            .populate('type_id', 'name description'); // lấy thông tin type nếu có
+
+        res.json(songs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+});
 
 
 

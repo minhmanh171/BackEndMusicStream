@@ -1,79 +1,108 @@
 const express = require('express');
-const Album = require('../models/album_model.js');
-
 const router = express.Router();
+const Album = require('../models/album_model');
 
-// GET /api/albums - Lấy danh sách album
+// GET all albums
 router.get('/', async (req, res) => {
     try {
         const albums = await Album.find()
-            .populate('artist_id', 'name'); // populate tên artist nếu có
+            .populate('artist_id') // Populate artist
+            .populate('songs');    // Populate song info
         res.json(albums);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 
-// GET /api/albums/:id - Lấy album theo id
-router.get('/:id', async (req, res) => {
-    try {
-        const album = await Album.findById(req.params.id)
-            .populate('artist_id', 'name');
-        if (!album) return res.status(404).json({ message: 'Album không tồn tại' });
-        res.json(album);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// POST /api/albums - Tạo album mới
+// POST new album
 router.post('/', async (req, res) => {
-    const { title, artist_id, release_date, image } = req.body;
     const album = new Album({
-        title,
-        artist_id,
-        release_date,
-        image,
+        title: req.body.title,
+        artist_id: req.body.artist_id,
+        release_date: req.body.release_date,
+        image: req.body.image,
+        songs: req.body.songs
     });
 
     try {
         const newAlbum = await album.save();
         res.status(201).json(newAlbum);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
     }
 });
 
-// PUT /api/albums/:id - Cập nhật album
+// GET album by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const album = await Album.findById(req.params.id)
+            .populate('artist_id')
+            .populate('songs');
+        if (!album) return res.status(404).json({ message: 'Album not found' });
+        res.json(album);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 router.put('/:id', async (req, res) => {
     try {
-        const album = await Album.findById(req.params.id);
-        if (!album) return res.status(404).json({ message: 'Album không tồn tại' });
+        const { title, artist_id, release_date, image, songs } = req.body;
 
-        const { title, artist_id, release_date, image } = req.body;
+        const updatedAlbum = await Album.findByIdAndUpdate(
+            req.params.id,
+            {
+                title,
+                artist_id,
+                release_date,
+                image,
+                songs,
+            },
+            { new: true }
+        );
 
-        if (title !== undefined) album.title = title;
-        if (artist_id !== undefined) album.artist_id = artist_id;
-        if (release_date !== undefined) album.release_date = release_date;
-        if (image !== undefined) album.image = image;
+        if (!updatedAlbum) {
+            return res.status(404).json({ message: 'Album not found' });
+        }
 
-        const updatedAlbum = await album.save();
         res.json(updatedAlbum);
     } catch (error) {
-        res.status(400).json({ message: error.message });
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
-
-// DELETE /api/albums/:id - Xóa album
 router.delete('/:id', async (req, res) => {
     try {
-        const album = await Album.findById(req.params.id);
-        if (!album) return res.status(404).json({ message: 'Album không tồn tại' });
-        await album.remove();
-        res.json({ message: 'Xóa album thành công' });
+        const deletedAlbum = await Album.findByIdAndDelete(req.params.id);
+
+        if (!deletedAlbum) {
+            return res.status(404).json({ message: 'Album not found' });
+        }
+        res.json({ message: 'Album deleted successfully', album: deletedAlbum });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
+// API tìm kiếm album theo title
+router.get('/albums/search', async (req, res) => {
+    try {
+        const { q } = req.query; // lấy từ khóa tìm kiếm từ query param `q`
+
+        if (!q) {
+            return res.status(400).json({ message: 'Thiếu từ khóa tìm kiếm' });
+        }
+
+        // Tìm album mà title chứa từ khóa (không phân biệt hoa thường)
+        const albums = await Album.find({
+            title: { $regex: q, $options: 'i' }
+        }).populate('artist_id songs'); // có thể populate nếu cần thông tin artist và songs
+
+        res.json(albums);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+});
 module.exports = router;

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const albumSchema = new mongoose.Schema({
     title: {
@@ -12,15 +12,20 @@ const albumSchema = new mongoose.Schema({
     },
     release_date: {
         type: Date,
-        required: true,
+        default: Date.now,
     },
     image: {
         type: String,
         default: '',
     },
-    songs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Song' }]
+    songs: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Song',
+        },
+    ],
 }, {
     versionKey: false,
 });
 
-export default mongoose.model('Album', albumSchema);
+module.exports = mongoose.model('Album', albumSchema);
