@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Album = require('../models/album_model');
+const { populate } = require('../models/playList_model');
+const { model } = require('mongoose');
 
 // GET all albums
 router.get('/', async (req, res) => {
@@ -37,9 +39,25 @@ router.get('/:id', async (req, res) => {
     try {
         const album = await Album.findById(req.params.id)
             .populate('artist_id')
-            .populate('songs');
+            .populate({
+                path: 'songs',
+                populate: {
+                    path: 'artist_id',
+                    model: 'Artist'
+                }
+            });
         if (!album) return res.status(404).json({ message: 'Album not found' });
         res.json(album);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+//tim theo nghe si
+router.get('/artist/:id', async (req, res) => {
+    try {
+        const albums = await Album.find({ artist_id: req.params.id }).populate('songs');
+        res.json(albums);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

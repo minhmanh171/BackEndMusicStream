@@ -87,7 +87,7 @@ router.post('/check_login_admin', async (req, res) => {
                     created_time: user.created_time
                 });
             } else {
-                res.status(403).json({ success: false, message: 'Access denied. Admins only.' });
+                res.status(403).json({ success: false, message: 'Not Admin' });
             }
         } else {
             res.status(401).json({ success: false, message: 'Invalid credentials' });

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Playlist = require('../models/playList_model');
+const { model } = require('mongoose');
 
 //  Tạo playlist mới
 router.post('/', async (req, res) => {
@@ -52,7 +53,9 @@ router.get('/user/:userId', async (req, res) => {
 //  Lấy playlist theo id
 router.get('/:id', async (req, res) => {
     try {
-        const playlist = await Playlist.findById(req.params.id).populate('songs').populate('user_id');
+        const playlist = await Playlist.findById(req.params.id)
+            .populate('user_id')
+            .populate({ path: 'songs', populate: { path: 'artist_id', model: "Artist" } });
         if (!playlist) return res.status(404).json({ message: 'Không tìm thấy playlist' });
         res.json(playlist);
     } catch (err) {
@@ -64,7 +67,7 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const updated = await Playlist.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json(updated);
+        res.json({ message: 'Đã cập nhật playlist', updated });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -79,6 +82,41 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
+
+//  Thêm bài hát vào playlist
+router.patch('/:id/add-song', async (req, res) => {
+    const { songId } = req.body;
+    try {
+        const updated = await Playlist.findByIdAndUpdate(
+            req.params.id,
+            { $addToSet: { songs: songId } },  // Không thêm trùng
+            { new: true }
+        );
+        res.json({ message: 'Đã thêm bài hát', updated });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+//  Xoá bài hát khỏi playlist
+
+router.patch('/:id/remove-song', async (req, res) => {
+    const { songId } = req.body;
+    try {
+        const updated = await Playlist.findByIdAndUpdate(
+            req.params.id,
+            { $pull: { songs: songId } },
+            { new: true }
+        );
+        res.json({ message: 'Đã xoá bài hát', updated });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
+
+
 
 // API tìm kiếm playlist theo name
 router.get('/playlists/search', async (req, res) => {
