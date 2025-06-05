@@ -50,18 +50,7 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
-//  Lấy playlist theo id
-router.get('/:id', async (req, res) => {
-    try {
-        const playlist = await Playlist.findById(req.params.id)
-            .populate('user_id')
-            .populate({ path: 'songs', populate: { path: 'artist_id', model: "Artist" } });
-        if (!playlist) return res.status(404).json({ message: 'Không tìm thấy playlist' });
-        res.json(playlist);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
+
 
 //  Cập nhật playlist
 router.put('/:id', async (req, res) => {
@@ -119,7 +108,7 @@ router.patch('/:id/remove-song', async (req, res) => {
 
 
 // API tìm kiếm playlist theo name
-router.get('/playlists/search', async (req, res) => {
+router.get('/search', async (req, res) => {
     try {
         const { q } = req.query;
         if (!q) {
@@ -129,12 +118,11 @@ router.get('/playlists/search', async (req, res) => {
         const playlists = await Playlist.find({
             name: { $regex: q, $options: 'i' }
         })
-            .populate('user_id', 'username email')  // populate thông tin user nếu muốn (thay đổi field theo schema user)
+            .populate('user_id')
             .populate({
                 path: 'songs',
                 populate: {
-                    path: 'artist_id type_id',
-                    select: 'name'  // lấy tên artist và type cho bài hát
+                    path: 'artist_id type_id'
                 }
             });
 
@@ -142,6 +130,19 @@ router.get('/playlists/search', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Lỗi server' });
+    }
+});
+
+//  Lấy playlist theo id
+router.get('/:id', async (req, res) => {
+    try {
+        const playlist = await Playlist.findById(req.params.id)
+            .populate('user_id')
+            .populate({ path: 'songs', populate: { path: 'artist_id', model: "Artist" } });
+        if (!playlist) return res.status(404).json({ message: 'Không tìm thấy playlist' });
+        res.json(playlist);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 module.exports = router;

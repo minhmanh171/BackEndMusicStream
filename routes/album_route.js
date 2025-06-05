@@ -34,24 +34,8 @@ router.post('/', async (req, res) => {
     }
 });
 
-// GET album by ID
-router.get('/:id', async (req, res) => {
-    try {
-        const album = await Album.findById(req.params.id)
-            .populate('artist_id')
-            .populate({
-                path: 'songs',
-                populate: {
-                    path: 'artist_id',
-                    model: 'Artist'
-                }
-            });
-        if (!album) return res.status(404).json({ message: 'Album not found' });
-        res.json(album);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
+
+
 
 //tim theo nghe si
 router.get('/artist/:id', async (req, res) => {
@@ -104,23 +88,39 @@ router.delete('/:id', async (req, res) => {
 });
 
 // API tìm kiếm album theo title
-router.get('/albums/search', async (req, res) => {
+router.get('/search', async (req, res) => {
     try {
-        const { q } = req.query; // lấy từ khóa tìm kiếm từ query param `q`
+        const { q } = req.query;
 
         if (!q) {
             return res.status(400).json({ message: 'Thiếu từ khóa tìm kiếm' });
         }
-
-        // Tìm album mà title chứa từ khóa (không phân biệt hoa thường)
         const albums = await Album.find({
             title: { $regex: q, $options: 'i' }
-        }).populate('artist_id songs'); // có thể populate nếu cần thông tin artist và songs
+        }).populate('artist_id').populate('songs');
 
         res.json(albums);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Lỗi server' });
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    try {
+        const album = await Album.findById(req.params.id)
+            .populate('artist_id')
+            .populate({
+                path: 'songs',
+                populate: {
+                    path: 'artist_id',
+                    model: 'Artist'
+                }
+            });
+        if (!album) return res.status(404).json({ message: 'Album not found' });
+        res.json(album);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 module.exports = router;

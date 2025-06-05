@@ -28,17 +28,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Lấy chi tiết artist theo ID
-router.get('/:id', async (req, res) => {
-    try {
-        const artist = await Artist.findById(req.params.id);
-        if (!artist) return res.status(404).json({ message: 'Không tìm thấy ca sĩ.' });
 
-        res.json(artist);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
 
 // Cập nhật nghệ sĩ
 router.put('/:id', async (req, res) => {
@@ -65,23 +55,31 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
-router.get('/albums/search', async (req, res) => {
+router.get('/search', async (req, res) => {
     try {
         const { q } = req.query;
         if (!q) {
             return res.status(400).json({ message: 'Thiếu từ khóa tìm kiếm' });
         }
-
-        const albums = await Album.find({
-            title: { $regex: q, $options: 'i' }
+        const artist = await Artist.find({
+            name: { $regex: q, $options: 'i' }
         })
-            .populate('artist_id')  // chỉ lấy 3 field này của artist
-            .populate('songs');
 
-        res.json(albums);
+        res.json(artist);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Lỗi server' });
+    }
+});
+// Lấy chi tiết artist theo ID
+router.get('/:id', async (req, res) => {
+    try {
+        const artist = await Artist.findById(req.params.id);
+        if (!artist) return res.status(404).json({ message: 'Không tìm thấy ca sĩ.' });
+
+        res.json(artist);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 module.exports = router;
