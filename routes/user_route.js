@@ -1,7 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user_model');
+require('dotenv').config();
 
+const nodemailer = require("nodemailer");
+const crypto = require('crypto');
+const API_URL = process.env.API_URL;
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
 //get all users
 router.get('/', async (req, res) => {
     try {
@@ -126,6 +132,73 @@ router.post('/check_signup', async (req, res) => {
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error' });
     }
+});
+
+//reset pass
+
+
+const sendEmail = async (to, subject, html) => {
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: EMAIL_USER,
+            pass: EMAIL_PASS,
+        },
+    });
+
+    await transporter.sendMail({
+        from: `"MusicStreamApp" <${EMAIL_USER}>`,
+        to,
+        subject,
+        html,
+    });
+}
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "Email không tồn tại" });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetToken = token;
+    user.resetTokenExpires = Date.now() + 3600000; // 1 giờ
+    await user.save();
+    const resetLink = `${API_URL}/reset-password/${token}`;
+    const html = `
+    <p>Bạn đã yêu cầu đặt lại mật khẩu tài khoản: ${user.username} </P>
+   <p >Vui lòng nhấn vào link bên dưới </P>
+   <p style="text-align: center;">
+  
+  <a href="${resetLink}"  style="display: inline-block; background-color: #007bff; color: white; font-weight: bold; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+    Đặt lại mật khẩu
+  </a>
+  
+</p>
+
+<p>Hoặc truy cập link: <a href="${resetLink}">musicstream.com/reset-password</a></p>
+<p>Người gửi <strong>Admin</strong></p>
+
+   
+  `;
+
+    await sendEmail(email, "Đặt lại mật khẩu", html);
+    res.json({ message: "Email đặt lại mật khẩu đã được gửi!" });
+});
+
+router.post('/api/reset-password', async (req, res) => {
+    const { token, password } = req.body;
+    const user = await User.findOne({
+        resetToken: token,
+        resetTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!user) return res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetToken = undefined;
+    user.resetTokenExpires = undefined;
+    await user.save();
+
+    res.json({ message: "Mật khẩu đã được đặt lại thành công!" });
 });
 
 //
