@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user_model');
+const bcrypt = require('bcrypt');
+
 require('dotenv').config();
 
 const nodemailer = require("nodemailer");
@@ -69,7 +71,7 @@ router.post('/check_login', async (req, res) => {
 
             });
         } else {
-            res.status(401).json({ success: false, message: 'Invalid credentials' });
+            res.status(401).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu' });
         }
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error' });
@@ -162,7 +164,7 @@ router.post('/forgot-password', async (req, res) => {
     user.resetToken = token;
     user.resetTokenExpires = Date.now() + 3600000; // 1 giờ
     await user.save();
-    const resetLink = `${API_URL}/reset-password/${token}`;
+    const resetLink = `${API_URL}/resetpass/${token}`;
     const html = `
     <p>Bạn đã yêu cầu đặt lại mật khẩu tài khoản: ${user.username} </P>
    <p >Vui lòng nhấn vào link bên dưới </P>
@@ -184,7 +186,7 @@ router.post('/forgot-password', async (req, res) => {
     res.json({ message: "Email đặt lại mật khẩu đã được gửi!" });
 });
 
-router.post('/api/reset-password', async (req, res) => {
+router.post('/reset-password', async (req, res) => {
     const { token, password } = req.body;
     const user = await User.findOne({
         resetToken: token,
@@ -193,7 +195,8 @@ router.post('/api/reset-password', async (req, res) => {
 
     if (!user) return res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
 
-    user.password = await bcrypt.hash(password, 10);
+    // user.password = await bcrypt.hash(password, 10);
+    user.password = password;
     user.resetToken = undefined;
     user.resetTokenExpires = undefined;
     await user.save();

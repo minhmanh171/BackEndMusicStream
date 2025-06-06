@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 //  Lấy tất cả playlist công khai
 router.get('/public', async (req, res) => {
     try {
-        const playlists = await Playlist.find({ is_public: true }).populate('songs');
+        const playlists = await Playlist.find({ is_public: true }).populate('songs').populate('user_id');
 
         res.json(playlists);
     } catch (err) {
