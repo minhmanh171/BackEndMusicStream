@@ -46,31 +46,75 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// router.post('/query', async (req, res) => {
+//     try {
+//         const { query } = req.body;
+//         if (!query || query.trim() === '') {
+//             return res.status(400).json({ error: 'ko để trống' });
+//         }
+//         console.log("Query:", query);
+
+//         const chatResults = await ChatBox.find({
+//             keyword: { $regex: query, $options: 'i' }
+//         });
+//         console.log(chatResults)
+//         if (chatResults.length > 0) {
+
+//             return res.json({
+//                 type: 'chatbox',
+//                 replies: chatResults
+//             });
+
+//         }
+//         // Nếu không tìm thấy chatbox, tìm thể loại và bài hát như trước
+//         const matchedTypes = await Type.find({
+//             name_type: { $regex: query, $options: 'i' },
+//         });
+//         const typeIds = matchedTypes.map((t) => t._id);
+//         const matchedSongs = await Song.find({
+//             $or: [
+//                 { title: { $regex: query, $options: 'i' } },
+//                 { type_id: { $in: typeIds } },
+//             ],
+//         });
+
+//         // Trả kết quả bình thường
+//         res.json({
+//             type: 'music',
+//             matchedSongs,
+//             matchedTypes,
+//         });
+
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Lỗi server' });
+//     }
+// });
+
 router.post('/query', async (req, res) => {
     try {
         const { query } = req.body;
+
         if (!query || query.trim() === '') {
-            return res.status(400).json({ error: 'Query không được để trống' });
+            return res.status(400).json({ error: 'Không để trống' });
         }
+
         console.log("Query:", query);
 
+        // Tìm từ bảng ChatBox
         const chatResults = await ChatBox.find({
             keyword: { $regex: query, $options: 'i' }
         });
-        console.log(chatResults)
-        if (chatResults.length > 0) {
-            // Nếu tìm thấy, trả về luôn câu trả lời chatbot
-            return res.json({
-                type: 'chatbox',
-                replies: chatResults
-            });
 
-        }
-        // Nếu không tìm thấy chatbox, tìm thể loại và bài hát như trước
+        // Tìm từ bảng Type
         const matchedTypes = await Type.find({
             name_type: { $regex: query, $options: 'i' },
         });
+
+        // Lấy danh sách _id của thể loại
         const typeIds = matchedTypes.map((t) => t._id);
+
+        // Tìm từ bảng Song (theo title hoặc thuộc loại vừa tìm được)
         const matchedSongs = await Song.find({
             $or: [
                 { title: { $regex: query, $options: 'i' } },
@@ -78,16 +122,17 @@ router.post('/query', async (req, res) => {
             ],
         });
 
-        // Trả kết quả bình thường
-        res.json({
-            type: 'music',
+        // Gộp tất cả vào response
+        return res.json({
+            chatResults,
             matchedSongs,
-            matchedTypes,
+            matchedTypes
         });
 
     } catch (error) {
-        console.error(error);
+        console.error('Lỗi khi truy vấn:', error);
         res.status(500).json({ error: 'Lỗi server' });
     }
 });
+
 module.exports = router;
