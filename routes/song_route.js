@@ -48,7 +48,7 @@ router.delete('/:id', async (req, res) => {
 
 
 
-// API tìm kiếm bài hát theo title, trả kèm artist và type
+
 router.get('/search', async (req, res) => {
     try {
         const { q } = req.query;
@@ -59,8 +59,21 @@ router.get('/search', async (req, res) => {
         const songs = await Song.find({
             title: { $regex: q, $options: 'i' }
         })
-            .populate('artist_id') // lấy thông tin artist
-            .populate('type_id'); // lấy thông tin type nếu có
+            .populate('artist_id')
+            .populate('type_id');
+
+        res.json(songs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi server' });
+    }
+});
+//danh sách bài hát theo thể loại
+router.post('/type', async (req, res) => {
+    try {
+        const { type_id } = req.body;
+        const songs = await Song.find({ type_id: type_id })
+            .populate('type_id').populate('artist_id');
 
         res.json(songs);
     } catch (error) {

@@ -87,7 +87,7 @@ router.post('/check_login_admin', async (req, res) => {
             if (user.role === 'admin') {
                 res.json({
                     success: true,
-                    message: 'Login successful',
+                    message: 'Truy cập thành công',
                     __id: user._id,
                     username: user.username,
                     email: user.email,
@@ -95,13 +95,13 @@ router.post('/check_login_admin', async (req, res) => {
                     created_time: user.created_time
                 });
             } else {
-                res.status(403).json({ success: false, message: 'Not Admin' });
+                res.status(403).json({ success: false, message: 'Cần quyền admin' });
             }
         } else {
-            res.status(401).json({ success: false, message: 'Invalid credentials' });
+            res.status(401).json({ success: false, message: 'Lỗi ' });
         }
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi sever' });
     }
 });
 
@@ -116,8 +116,8 @@ router.post('/check_signup', async (req, res) => {
         if (user) {
             // Kiểm tra cụ thể trùng username hay email
             let message = '';
-            if (user.username === username) message = 'Username already exists';
-            if (user.email === email) message = 'Email already exists';
+            if (user.username === username) message = 'Tài khoản tồn tại';
+            if (user.email === email) message = 'Email đã tồn tại';
             if (user.username === username && user.email === email) {
                 message = 'Cả 2 bị trùng';
             }
@@ -128,11 +128,11 @@ router.post('/check_signup', async (req, res) => {
         } else {
             res.json({
                 success: true,
-                message: 'Username and email are available'
+                message: 'Tạo thành công'
             });
         }
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Lỗi' });
     }
 });
 
