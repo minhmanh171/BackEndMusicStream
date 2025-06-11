@@ -143,54 +143,54 @@ router.delete('/:id', async (req, res) => {
 // });
 
 
-router.post('/query', async (req, res) => {
-    try {
-        let { query } = req.body;
+// router.post('/query', async (req, res) => {
+//     try {
+//         let { query } = req.body;
 
-        query = query.trim();
-
-
-        const tokens = query.split(/\s+/).map(word => escapeRegex(word));
+//         query = query.trim();
 
 
-        function escapeRegex(text) {
-            return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-        }
+//         const tokens = query.split(/\s+/).map(word => escapeRegex(word));
 
-        // Tạo điều kiện tìm kiếm theo OR với từng từ token
-        // Ví dụ: [{keyword: /ca/i}, {keyword: /sĩ/i}, {keyword: /hàn/i}, {keyword: /quốc/i}]
-        const timtheotu = (field) => {
-            return {
-                $or: tokens.map(token => ({
-                    [field]: { $regex: token, $options: 'i' }
-                }))
-            };
-        };
 
-        // Tìm chatResults theo từng từ trong keyword
-        const chatResults = await ChatBox.find(timtheotu('keyword'));
+//         function escapeRegex(text) {
+//             return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+//         }
 
-        // Tìm matchedTypes theo từng từ trong name_type
-        const matchedTypes = await Type.find(timtheotu('name_type'));
+//         // Tạo điều kiện tìm kiếm theo OR với từng từ token
+//         // Ví dụ: [{keyword: /ca/i}, {keyword: /sĩ/i}, {keyword: /hàn/i}, {keyword: /quốc/i}]
+//         const timtheotu = (field) => {
+//             return {
+//                 $or: tokens.map(token => ({
+//                     [field]: { $regex: token, $options: 'i' }
+//                 }))
+//             };
+//         };
 
-        // Tìm matchedArtist theo từng từ trong name
-        const matchedArtist = await Artist.find(timtheotu('name'));
+//         // Tìm chatResults theo từng từ trong keyword
+//         const chatResults = await ChatBox.find(timtheotu('keyword'));
 
-        // Tìm matchedSongs theo từng từ trong title
-        const matchedSongs = await Song.find(timtheotu('title'));
+//         // Tìm matchedTypes theo từng từ trong name_type
+//         const matchedTypes = await Type.find(timtheotu('name_type'));
 
-        return res.json({
-            chatResults,
-            matchedSongs,
-            matchedTypes,
-            matchedArtist
-        });
+//         // Tìm matchedArtist theo từng từ trong name
+//         const matchedArtist = await Artist.find(timtheotu('name'));
 
-    } catch (error) {
-        console.error('Lỗi khi truy vấn:', error);
-        res.status(500).json({ error: 'Lỗi server' });
-    }
-});
+//         // Tìm matchedSongs theo từng từ trong title
+//         const matchedSongs = await Song.find(timtheotu('title'));
+
+//         return res.json({
+//             chatResults,
+//             matchedSongs,
+//             matchedTypes,
+//             matchedArtist
+//         });
+
+//     } catch (error) {
+//         console.error('Lỗi khi truy vấn:', error);
+//         res.status(500).json({ error: 'Lỗi server' });
+//     }
+// });
 
 
 module.exports = router;

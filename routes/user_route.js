@@ -10,7 +10,7 @@ const crypto = require('crypto');
 const API_URL = process.env.API_URL;
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
-//get all users
+
 router.get('/', async (req, res) => {
     try {
         const users = await User.find();
@@ -20,12 +20,24 @@ router.get('/', async (req, res) => {
     }
 });
 
-//insert a user
+
 router.post('/', async (req, res) => {
     try {
+        const { username, email } = req.body;
+
+        const exituser = await User.findOne({ username });
+        if (exituser) {
+            return res.status(400).json({ message: 'Tên người dùng đã tồn tại' });
+        }
+
+        const exitEmail = await User.findOne({ email });
+        if (exitEmail) {
+            return res.status(400).json({ message: 'Email đã tồn tại' });
+        }
         const user = new User(req.body);
+
         await user.save();
-        res.status(201).json(user);
+        res.status(201).json({ user, message: "Tạo thành công" });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -67,11 +79,11 @@ router.post('/check_login', async (req, res) => {
                 username: user.username,
                 email: user.email,
                 avatar: user.avatar,
-                created_time: user.created_time
-
+                created_time: user.created_time,
+                role: user.role
             });
         } else {
-            res.status(401).json({ success: false, message: 'Sai tài khoản hoặc mật khẩu' });
+            res.json({ success: false, message: 'Sai tài khoản hoặc mật khẩu' });
         }
     } catch (err) {
         res.status(500).json({ success: false, message: 'Server error' });
@@ -88,7 +100,7 @@ router.post('/check_login_admin', async (req, res) => {
                 res.json({
                     success: true,
                     message: 'Truy cập thành công',
-                    __id: user._id,
+                    _id: user._id,
                     username: user.username,
                     email: user.email,
                     avatar: user.avatar,
@@ -109,32 +121,31 @@ router.post('/check_login_admin', async (req, res) => {
 
 
 //check register
-router.post('/check_signup', async (req, res) => {
-    const { username, email } = req.body;
-    try {
-        const user = await User.findOne({ $or: [{ username }, { email }] });
-        if (user) {
-            // Kiểm tra cụ thể trùng username hay email
-            let message = '';
-            if (user.username === username) message = 'Tài khoản tồn tại';
-            if (user.email === email) message = 'Email đã tồn tại';
-            if (user.username === username && user.email === email) {
-                message = 'Cả 2 bị trùng';
-            }
-            res.json({
-                success: false,
-                message
-            });
-        } else {
-            res.json({
-                success: true,
-                message: 'Tạo thành công'
-            });
-        }
-    } catch (err) {
-        res.status(500).json({ success: false, message: 'Lỗi' });
-    }
-});
+// router.post('/check_signup', async (req, res) => {
+//     const { username, email } = req.body;
+//     try {
+//         const user = await User.findOne({ $or: [{ username }, { email }] });
+//         if (user) {
+//             let message = '';
+//             if (user.username === username) message = 'Tài khoản tồn tại';
+//             if (user.email === email) message = 'Email đã tồn tại';
+//             if (user.username === username && user.email === email) {
+//                 message = 'Cả 2 bị trùng';
+//             }
+//             res.json({
+//                 success: false,
+//                 message
+//             });
+//         } else {
+//             res.json({
+//                 success: true,
+//                 message: 'Tạo thành công'
+//             });
+//         }
+//     } catch (err) {
+//         res.status(500).json({ success: false, message: 'Lỗi' });
+//     }
+// });
 
 //reset pass
 
@@ -166,18 +177,31 @@ router.post('/forgot-password', async (req, res) => {
     await user.save();
     const resetLink = `${API_URL}/resetpass/${token}`;
     const html = `
-    <p>Bạn đã yêu cầu đặt lại mật khẩu tài khoản: ${user.username} </P>
-   <p >Vui lòng nhấn vào link bên dưới </P>
-   <p style="text-align: center;">
-  
-  <a href="${resetLink}"  style="display: inline-block; background-color: #007bff; color: white; font-weight: bold; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
-    Đặt lại mật khẩu
-  </a>
-  
-</p>
+   <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #f9f9f9;">
+    <h2 style="color: #333; text-align: center;">Yêu cầu đặt lại mật khẩu</h2>
 
-<p>Hoặc truy cập link: <a href="${resetLink}">musicstream.com/reset-password</a></p>
-<p>Người gửi <strong>Admin</strong></p>
+    <p>Xin chào <strong>${user.username}</strong>,</p>
+
+    <p>Bạn đã gửi yêu cầu đặt lại mật khẩu cho tài khoản của mình.</p>
+
+    <p>Vui lòng nhấn vào nút bên dưới để tiến hành đặt lại mật khẩu:</p>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetLink}"
+            style="background-color: #007bff; color: white; font-weight: bold; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-size: 16px;">
+            Đặt lại mật khẩu
+        </a>
+    </div>
+
+    <p>Nếu nút không hoạt động, bạn có thể sao chép và dán liên kết sau vào trình duyệt:</p>
+    <p style="word-break: break-all;"><a href="${resetLink}">${resetLink}</a></p>
+
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+    <p style="font-size: 14px; color: #555;">Email này được gửi từ hệ thống của <strong>MusicStream</strong>.</p>
+    <p style="font-size: 14px; color: #555;">Người gửi: <strong>Admin</strong></p>
+</div>
+
 
    
   `;

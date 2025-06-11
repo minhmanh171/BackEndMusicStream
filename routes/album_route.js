@@ -8,15 +8,15 @@ const { model } = require('mongoose');
 router.get('/', async (req, res) => {
     try {
         const albums = await Album.find()
-            .populate('artist_id') // Populate artist
-            .populate('songs');    // Populate song info
+            .populate('artist_id') 
+            .populate('songs');   
         res.json(albums);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// POST new album
+
 router.post('/', async (req, res) => {
     const album = new Album({
         title: req.body.title,

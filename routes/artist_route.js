@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Artist = require('../models/artist_model');
 
-// Tạo mới artist
+
 router.post('/', async (req, res) => {
     try {
         const { name, bio, image } = req.body;
@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Lấy danh sách tất cả artist
+
 router.get('/', async (req, res) => {
     try {
         const artists = await Artist.find();
@@ -29,14 +29,12 @@ router.get('/', async (req, res) => {
 });
 
 
-
-// Cập nhật nghệ sĩ
 router.put('/:id', async (req, res) => {
     try {
         const updatedArtist = await Artist.findByIdAndUpdate(
             req.params.id,
             { $set: req.body },
-            { new: true } // trả về bản ghi đã cập nhật
+            { new: true } 
         );
         if (!updatedArtist) return res.status(404).json({ message: 'Không tìm thấy nghệ sĩ' });
         res.json(updatedArtist);
@@ -45,7 +43,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Xóa nghệ sĩ
+
 router.delete('/:id', async (req, res) => {
     try {
         const deleted = await Artist.findByIdAndDelete(req.params.id);
@@ -71,7 +69,8 @@ router.get('/search', async (req, res) => {
         res.status(500).json({ message: 'Lỗi server' });
     }
 });
-// Lấy chi tiết artist theo ID
+
+
 router.get('/:id', async (req, res) => {
     try {
         const artist = await Artist.findById(req.params.id);
